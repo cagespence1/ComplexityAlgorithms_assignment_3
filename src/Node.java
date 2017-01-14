@@ -14,4 +14,14 @@ public class Node {
     public int getId() {
         return id;
     }
+
+    public String toString(){
+        return "node " + id + " : " + color;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        Node node = (Node)o;
+        return (node.getColor().equals(this.color) && node.getId() == this.getId());
+    }
 }

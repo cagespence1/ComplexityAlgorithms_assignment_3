@@ -14,4 +14,19 @@ public class State {
     public Node getNode2() {
         return node2;
     }
+
+    public String toString(){
+        return "(" + node1.getId() + ", " + node2.getId() + ")";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        State state = (State) o;
+        if (state.getNode1().equals(this.node1) && state.getNode2().equals(this.node2)){
+            return true;
+        } else if (state.getNode1().equals(this.node2) && state.getNode2().equals(this.node1)){
+            return true;
+        }
+        return false;
+    }
 }
