@@ -5,27 +5,40 @@ public class Main {
     private static final String NO_PATH = "No paths available from current state";
     private static final String FOUND_FINISH = "Finish state found";
 
+    /**
+     * Colors for paths.
+     */
     public enum Color {
         BLACK, PURPLE, GREEN, YELLOW, BLUE
     }
 
-    ArrayList<Path> paths = new ArrayList<>();
-    ArrayList<Path> availablePaths = new ArrayList<>();
-    ArrayList<State> visitedStates = new ArrayList<>();
-    ArrayList<Integer> branchPositions = new ArrayList<>();
-    ArrayList<Integer> branchSizes = new ArrayList<>();
-    ArrayList<State> allStates = new ArrayList<>();
+    private ArrayList<Path> paths = new ArrayList<>();
+    private ArrayList<Path> availablePaths = new ArrayList<>();
+    private ArrayList<State> visitedStates = new ArrayList<>();
+    private ArrayList<State> allStates = new ArrayList<>();
+    private ArrayList<Integer> branchPositions = new ArrayList<>();
+    private ArrayList<Integer> branchSizes = new ArrayList<>();
 
-    State currentState;
+    private State currentState;
 
-    boolean foundFinish = false;
-
+    private boolean foundFinish = false;
 
     public static void main(String[] args) {
         new Main().findPath();
     }
 
-    void findPath() {
+    /**
+     * The main method run in the Main() class.
+     *
+     * All nodes and paths are added to lists.
+     *
+     * While the finish node isn't the method tries to run the goToNextState() method.
+     * Exceptions from that method are caught and dealt with. if the exception contains
+     * the NO_PATH String, the currentState is reverted back to the last branch and the
+     * next available path is followed. If FINISH_FOUND is caught, the program prints
+     * some data and closes.
+     */
+    private void findPath() {
         Node node1 = new Node(Color.PURPLE, 1);
         Node node2 = new Node(Color.BLACK, 2);
         Node node3 = new Node(Color.GREEN, 3);
@@ -96,11 +109,6 @@ public class Main {
                 goToNextState();
             } catch (Exception e) {
                 if (e.getMessage().equals(NO_PATH)) {
-
-                    System.out.println("\t" + visitedStates + " visited states");
-                    System.out.println("\t" + branchPositions + " branch positions");
-                    System.out.println("\t" + branchSizes + " branch sizes");
-
                     System.out.println("\t" + visitedStates.get(branchPositions.get(branchPositions.size() - 1))); // previous to branch position
 
                     // take the last added available path
@@ -108,37 +116,39 @@ public class Main {
 
                     System.out.print("\t"); // the path from the branch to take
 
-                    followPath(availablePaths, availablePaths.size() - 1);
+                    // follow the last added available path
+                    followPath(availablePaths.get(availablePaths.size() - 1));
                     cleanUpAvailablePaths();
-
                 } else if (e.getMessage().equals(FOUND_FINISH)) {
                     foundFinish = true;
                 }
             }
         }
+        System.out.println("\tFinish node found\n\tFinal state list:");
         System.out.println(visitedStates);
-        System.out.println(visitedStates.size());
-        System.out.println("found exit");
+        System.out.println("\tThe final State was found in " + visitedStates.size() + " moves. " + allStates.size() + " states visited");
     }
 
+    /**
+     * Called after a path has been followed. Effectively backtracking to a previous branch point. This method removes
+     * paths from availablePaths that have been followed, removes all visitedStates between the previous branch
+     * point and the end, and updates branch positions and sizes (removing branch positions if there are no more elements
+     * to branch to, or decrementing the branch size if there are still more paths available to branch to at the current
+     * branch position).
+     */
     private void cleanUpAvailablePaths() {
         // remove last path from available paths
         availablePaths.remove(availablePaths.size() - 1);
 
+        // remove visited nodes between
         System.out.println("\t\tremoving " + visitedStates.subList(branchPositions.get(branchPositions.size() - 1), visitedStates.size()));
-        visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1)+1, visitedStates.size()));
+        visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1) + 1, visitedStates.size()));
 
         if (branchSizes.get(branchSizes.size() - 1) <= 2) {
-            // remove visited nodes between
-
-//             System.out.println("\t\tremoving " + visitedStates.subList(branchPositions.get(branchPositions.size() - 1), visitedStates.size()));
-//            visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1)+1, visitedStates.size()));
-
             // remove branch position and branch size from list
             branchPositions.remove(branchPositions.size() - 1);
             branchSizes.remove(branchSizes.size() - 1);
         } else {
-
             // subtract 1 from the last index of the branchSizes
             int branchSize = branchSizes.get(branchSizes.size() - 1);
             branchSize--;
@@ -146,10 +156,33 @@ public class Main {
         }
     }
 
+    /**
+     * Finds available Paths to follow and tries to follow them. There are several conditions that
+     * can affect what behavior this method displays.
+     *
+     * (1) If there are no available paths to take from a node, an Exception is thrown that the Main()
+     * class will catch and deal with.
+     *
+     * (2) If there is only one path available for the pawn to move on, it is checked that the result
+     * of following it won't be a state that has already been achieved (this ensures that the program
+     * will not enter a loop). If the resulting State is not a state that has been visited yet, the
+     * pawn follows the path.
+     *
+     * (3) If there are multiple paths that the pawn could take (aka. a branch position), the pawn
+     * takes a path in the same way that the (1st) condition does (avoiding loops), the extra
+     * possible paths are added to a list along with the position of the branch and amount of extra
+     * paths there are. Storing these allows the program to go back to the branch positions and visit
+     * the other paths at a later time.
+     *
+     * @throws Exception containing either a FOUND_FINISH message, or a NO_PATH exception. these are
+     * to be dealt with by the method calling them.
+     */
     private void goToNextState() throws Exception {
         // add current state to visited and allStates
         visitedStates.add(currentState);
-        allStates.add(currentState);
+        if (!allStates.contains(currentState)) {
+            allStates.add(currentState);
+        }
 
         System.out.println(currentState); // print current state
 
@@ -162,45 +195,44 @@ public class Main {
         ArrayList<Path> possiblePaths = new ArrayList<>();
         possiblePaths.addAll(findPaths(currentState));
 
+        // if there are no paths
         if (possiblePaths.size() == 0) {
             System.out.println("\tno paths");
+
+            // throw an exception to be handled by Main()
             throw new Exception(NO_PATH);
 
             // if we have found a path
         } else if (possiblePaths.size() == 1) {
 
-            // and that path doesnt take us somewhere we've been before
+            // and that path doesn't take us somewhere we've been before
             if (!duplicateState(possiblePaths.get(0))) {
 
-                // follow the path
-                followPath(possiblePaths, 0);
+                System.out.println("\t" + possiblePaths.get(0) + " **");
 
-                // if it DOES take us down a path we've already been
+                // follow the path
+                followPath(possiblePaths.get(0));
+
+                // if the path does take us down a path we've already been
             } else {
 
-                System.out.print("\t" + possiblePaths.get(0));
-                System.out.println(" >> duplicate path");
-                // todo set the currentstate back to the previous branch
-
-                System.out.println("\t" + visitedStates + " visited states");
-                System.out.println("\t" + branchPositions + " branch positions");
-                System.out.println("\t" + branchSizes + " branch sizes");
-                System.out.println("\t" + visitedStates.get(branchPositions.get(branchPositions.size() - 1))); // previous to branch position
+                System.out.println("\t" + possiblePaths.get(0) + " >> duplicate path");
 
                 // take us back to the second most previous branch position
                 currentState = visitedStates.get(branchPositions.get(branchPositions.size() - 1));
 
-                //
+                // clean up old paths and branches
                 cleanUpAvailablePaths();
             }
         } else if (possiblePaths.size() > 1) {
-
-            // todo only add a path if the result of the path is not a state that has already been achieved
             // add other paths to a list to be visited later
             int pathCount = 0;
 
+            System.out.println("\t" + possiblePaths.get(0) + " **");
             // starting from position 1, see if the path ends up in a state we've already been to or not. add the path accordingly.
             for (int i = 1; i < possiblePaths.size(); i++) {
+
+                // if the result of the path doesn't land in a state that's been achieved before
                 if (!duplicateState(possiblePaths.get(i))) {
                     pathCount++;
 
@@ -218,32 +250,41 @@ public class Main {
 
             // if we haven't been to the first available state, follow the path to it
             if (!duplicateState(possiblePaths.get(0))) {
-                followPath(possiblePaths, 0);
+                followPath(possiblePaths.get(0));
             } else {
-                // todo we cant follow the duplicate path so we have to
-                System.out.println("follow path");
-                followPath(availablePaths, availablePaths.size() - 1);
+
+                // we cant follow the duplicate path so we have to follow the previous path in available paths
+                followPath(availablePaths.get(availablePaths.size() - 1));
             }
         }
     }
 
-    boolean duplicateState(Path path) {
-        // todo if the path we want to go on leads to a state we've already been to, skip that path and move to the previous one in line
+    /**
+     * Finds whether following a given path from the current State will result in a
+     * State that's already been achieved.
+     * @param path the path to test.
+     * @return Whether the path has been followed or not
+     */
+    private boolean duplicateState(Path path) {
+        // store a temporary state
         State tempState;
+
         // if we are moving from the first node
         if (path.getFrom().getId() == currentState.getNode1().getId()) {
             tempState = new State(path.getTo(), currentState.getNode2());
         } else {
+
             // if we are moving from the second node
             tempState = new State(currentState.getNode1(), path.getTo());
         }
         return allStates.contains(tempState);
     }
 
-    private void followPath(ArrayList<Path> paths, int i) {
-        System.out.println("\t" + paths.get(i) + "**"); // print the path we will be taking
-
-        Path path = paths.get(i);
+    /**
+     * Follows a given path from the currentState and updates the currentState's position
+     * @param path for the currentState to follow
+     */
+    private void followPath(Path path){
         State tempState;
         // if we are moving from the first node
         if (path.getFrom().getId() == currentState.getNode1().getId()) {
@@ -255,31 +296,50 @@ public class Main {
         currentState = tempState;
     }
 
+    /**
+     * Finda all valid Paths from a given State.
+     * @param state the state from which to search for valid paths.
+     * @return a list of valid Paths.
+     */
     ArrayList<Path> findPaths(State state) {
-        ArrayList<Path> possiblePaths = new ArrayList<>();
+        ArrayList<Path> validPaths = new ArrayList<>();
 
         Node node1 = state.getNode1();
         Node node2 = state.getNode2();
 
         // add paths available to node1
         for (Path path : paths) {
-            if (path.getFrom().getId() == node1.getId() && node2.getColor().equals(path.getColor())) {
-                if (!possiblePaths.contains(path)) {
-                    possiblePaths.add(path);
+            if (validPath(path, node1, node2)) {
+                if (!validPaths.contains(path)) {
+                    validPaths.add(path);
                 }
             }
         }
 
         // add paths available to node2
         for (Path path : paths) {
-            if (path.getFrom().getId() == node2.getId() && node1.getColor().equals(path.getColor())) {
-                if (!possiblePaths.contains(path)) {
-                    possiblePaths.add(path);
+            if (validPath(path, node2, node1)) {
+                if (!validPaths.contains(path)) {
+                    validPaths.add(path);
                 }
             }
         }
 
-        return possiblePaths;
+        return validPaths;
+    }
+
+    /**
+     * Finds if a given path is valid from a node.
+     *
+     * A valid path is one that starts from node1 and has the same color as node2.
+     *
+     * @param path the path that is checked
+     * @param node1 the node that the path will be starting from
+     * @param node2 the other node
+     * @return whether it is valid to move along the given path from node1
+     */
+    boolean validPath(Path path, Node node1, Node node2){
+        return path.getFrom().getId() == node1.getId() && node2.getColor().equals(path.getColor());
     }
 
 }
