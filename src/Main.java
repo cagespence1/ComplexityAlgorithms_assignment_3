@@ -117,6 +117,7 @@ public class Main {
             }
         }
         System.out.println(visitedStates);
+        System.out.println(visitedStates.size());
         System.out.println("found exit");
     }
 
@@ -124,10 +125,14 @@ public class Main {
         // remove last path from available paths
         availablePaths.remove(availablePaths.size() - 1);
 
+        System.out.println("\t\tremoving " + visitedStates.subList(branchPositions.get(branchPositions.size() - 1), visitedStates.size()));
+        visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1)+1, visitedStates.size()));
 
         if (branchSizes.get(branchSizes.size() - 1) <= 2) {
             // remove visited nodes between
-            visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1), visitedStates.size()));
+
+//             System.out.println("\t\tremoving " + visitedStates.subList(branchPositions.get(branchPositions.size() - 1), visitedStates.size()));
+//            visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 1)+1, visitedStates.size()));
 
             // remove branch position and branch size from list
             branchPositions.remove(branchPositions.size() - 1);
@@ -139,19 +144,6 @@ public class Main {
             branchSize--;
             branchSizes.set(branchSizes.size() - 1, branchSize);
         }
-    }
-
-    private void cleanUpDuplicatePaths() {
-        // remove last path from available paths
-        availablePaths.remove(availablePaths.size() - 1);
-
-        // remove last 2 visited nodes between
-        visitedStates.removeAll(visitedStates.subList(branchPositions.get(branchPositions.size() - 2), visitedStates.size()));
-
-        // remove last 2 branch position and branch size from list
-        branchPositions.removeAll(branchPositions.subList(branchPositions.size() - 2, branchPositions.size()));
-        branchSizes.removeAll(branchSizes.subList(branchSizes.size() - 2, branchSizes.size()));
-
     }
 
     private void goToNextState() throws Exception {
@@ -230,7 +222,7 @@ public class Main {
             } else {
                 // todo we cant follow the duplicate path so we have to
                 System.out.println("follow path");
-                followPath(availablePaths,availablePaths.size()-1);
+                followPath(availablePaths, availablePaths.size() - 1);
             }
         }
     }
