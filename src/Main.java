@@ -8,7 +8,7 @@ public class Main {
     /**
      * Colors for paths.
      */
-    public enum Color {
+    private enum Color {
         BLACK, PURPLE, GREEN, YELLOW, BLUE
     }
 
@@ -301,7 +301,7 @@ public class Main {
      * @param state the state from which to search for valid paths.
      * @return a list of valid Paths.
      */
-    ArrayList<Path> findPaths(State state) {
+    private ArrayList<Path> findPaths(State state) {
         ArrayList<Path> validPaths = new ArrayList<>();
 
         Node node1 = state.getNode1();
@@ -338,7 +338,7 @@ public class Main {
      * @param node2 the other node
      * @return whether it is valid to move along the given path from node1
      */
-    boolean validPath(Path path, Node node1, Node node2){
+    private boolean validPath(Path path, Node node1, Node node2){
         return path.getFrom().getId() == node1.getId() && node2.getColor().equals(path.getColor());
     }
 
